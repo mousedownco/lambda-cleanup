@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: lambda-cleanup
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        exports.lambdaHandler = async (event, context) => {
+            return {
+                message: 'Hello World 1',
+                time: new Date().toISOString()
+            }
+        }
+      Handler: index.lambdaHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
