@@ -3,8 +3,8 @@ phases:
   build:
     commands:
       - sam build --parameter-overrides buildVersion=${CODEBUILD_BUILD_ID}
-      - sam package --output-template-file dist/packaged.yaml
+      - sam package --output-template-file dist/packaged.yaml --s3-bucket ${ARTIFACTS_BUCKET}
 artifacts:
   files:
     - dist/packaged.yaml
-    - "**/*"
+    - '**/*'

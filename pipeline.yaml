@@ -36,7 +36,10 @@ Resources:
         Type: ARM_LAMBDA_CONTAINER
         ComputeType: BUILD_LAMBDA_1GB
         Image: aws/codebuild/amazonlinux-aarch64-lambda-standard:nodejs20
-        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ARTIFACTS_BUCKET
+            Type: PLAINTEXT
+            Value: !Ref ArtifactsBucket
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Source:
         Type: CODEPIPELINE
