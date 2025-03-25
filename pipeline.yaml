@@ -59,7 +59,7 @@ Resources:
                 Category: Source
                 Owner: AWS
                 Provider: CodeStarSourceConnection
-                Version: "1"
+                Version: '1'
               Configuration:
                 ConnectionArn: !Ref codestarConnectionArn
                 FullRepositoryId: !Ref repository
@@ -73,7 +73,7 @@ Resources:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
-                Version: "1"
+                Version: '1'
               Configuration:
                 ProjectName: !Ref BuildProject
               InputArtifacts:
@@ -87,11 +87,11 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Provider: CloudFormation
-                Version: "1"
+                Version: '1'
               Configuration:
                 ActionMode: CHANGE_SET_REPLACE
                 StackName: lambda-cleanup
-                TemplatePath: BuildOutput::template.yaml
+                TemplatePath: BuildOutput::packaged.yaml
                 ChangeSetName: lambda-cleanup-changeset
                 RoleArn: !GetAtt CloudFormationServiceRole.Arn
                 Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
@@ -104,7 +104,7 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Provider: CloudFormation
-                Version: "1"
+                Version: '1'
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 StackName: lambda-cleanup
@@ -115,7 +115,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
@@ -129,7 +129,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
@@ -143,7 +143,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
