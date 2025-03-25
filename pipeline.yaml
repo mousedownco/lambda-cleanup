@@ -110,6 +110,42 @@ Resources:
                 StackName: lambda-cleanup
                 ChangeSetName: lambda-cleanup-changeset
               RunOrder: 2
+        - Name: CleanUp
+          Actions:
+            - Name: CleanupLambdaVersions
+              ActionTypeId:
+                Category: Compute
+                Owner: AWS
+                Provider: Commands
+                Version: '1'
+              Commands:
+                - export VERSIONS_TO_KEEP=3
+                - echo "Will keep $VERSIONS_TO_KEEP latest versions for each function"
+                - |
+                  STACK_RESOURCES=$(aws cloudformation list-stack-resources \
+                    --stack-name lambda-cleanup \
+                    --query "StackResourceSummaries[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" \
+                    --output text)
+                - |
+                  for FUNCTION_NAME in $STACK_RESOURCES; do
+                    echo "Cleaning up versions for $FUNCTION_NAME"
+                  
+                    VERSIONS_TO_DELETE=$(aws lambda list-versions-by-function \
+                      --function-name $FUNCTION_NAME \
+                      --query "Versions[?Version!=\`$LATEST\`] | sort_by(@, &to_number(Version)) | [0:-$VERSIONS_TO_KEEP].Version" \
+                      --output text)
+                  
+                    if [ -n "$VERSIONS_TO_DELETE" ]; then
+                      for VERSION in $VERSIONS_TO_DELETE; do
+                        echo "Deleting version $VERSION of $FUNCTION_NAME"
+                        # aws lambda delete-version --function-name $FUNCTION_NAME --qualifier $VERSION
+                      done
+                    else
+                      echo "No versions to delete for $FUNCTION_NAME"
+                    fi
+                  done
+              RunOrder: 1
+
   # Roles
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
