@@ -16,7 +16,7 @@ Resources:
             return {
                 message: 'Hello World',
                 time: new Date().toISOString(),
-                buildVersion: process.env.BUILD_VERSION
+                buildNumber: process.env.BUILD_NUMBER
             }
         }
       Handler: index.lambdaHandler
