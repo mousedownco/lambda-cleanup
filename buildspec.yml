@@ -1,0 +1,13 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - sam build
+      - sam package --output-template-file packaged.yaml --s3-bucket ${ARTIFACTS_BUCKET}
+  post_build:
+    commands:
+      - echo '{"buildNumber":"'${CODEBUILD_BUILD_NUMBER}'"}' > parameters.json
+artifacts:
+  files:
+    - packaged.yaml
+    - parameters.json

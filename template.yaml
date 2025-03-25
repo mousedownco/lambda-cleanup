@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: lambda-cleanup
+Parameters:
+  buildNumber:
+    Type: String
+    Default: LOCAL
+    Description: Build number - supplied by CodeBuild via CodePipeline
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        exports.lambdaHandler = async (event, context) => {
+            return {
+                message: 'Hello World',
+                time: new Date().toISOString(),
+                buildNumber: process.env.BUILD_NUMBER,
+                lambdaVersion: process.env.AWS_LAMBDA_FUNCTION_VERSION 
+            }
+        }
+      Handler: index.lambdaHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          BUILD_NUMBER: !Ref buildNumber
+      AutoPublishAlias: live
