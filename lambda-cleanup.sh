@@ -44,10 +44,11 @@ for fn_name in "${function_arns[@]}"; do
 
   # List all versions for this function
   versions=$(aws lambda list-versions-by-function --function-name "$fn_name" --output json | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
-  echo $versions
+  echo "Raw versions: $versions"
 
-  # Convert to array and sort numerically
-  IFS=$'\n' read -rd '' -a version_array <<< "$versions"
+  # Create array with space-separated values
+  version_array=($versions)
+  echo "Created array with ${#version_array[@]} elements"
 
   # Skip if there are no versions or fewer versions than we want to keep
   if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
