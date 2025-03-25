@@ -43,30 +43,31 @@ for fn_name in "${function_arns[@]}"; do
   echo "Processing function: $fn_name"
 
   # List all versions for this function
-  versions=$(aws lambda list-versions-by-function --function-name "$fn_name" | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
+  versions=$(aws lambda list-versions-by-function --function-name "$fn_name" --output json | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
+  echo $versions
 
-  # Convert to array and sort numerically
-  IFS=$'\n' read -rd '' -a version_array <<< "$versions"
-
-  # Skip if there are no versions or fewer versions than we want to keep
-  if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
-    echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
-    continue
-  fi
-
-  # Sort versions numerically (important for correct deletion)
-  IFS=$'\n' sorted_versions=($(sort -n <<< "${version_array[*]}"))
-
-  # Calculate how many versions to delete
-  versions_to_delete=$((${#sorted_versions[@]} - VERSIONS_TO_KEEP))
-  echo "Function $fn_name has ${#sorted_versions[@]} versions. Keeping $VERSIONS_TO_KEEP newest versions, deleting $versions_to_delete versions."
-
-  # Delete all but the newest VERSIONS_TO_KEEP versions
-  for ((i=0; i<$versions_to_delete; i++)); do
-    version=${sorted_versions[$i]}
-    echo "Deleting $fn_name:$version"
+#  # Convert to array and sort numerically
+#  IFS=$'\n' read -rd '' -a version_array <<< "$versions"
+#
+#  # Skip if there are no versions or fewer versions than we want to keep
+#  if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
+#    echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
+#    continue
+#  fi
+#
+#  # Sort versions numerically (important for correct deletion)
+#  IFS=$'\n' sorted_versions=($(sort -n <<< "${version_array[*]}"))
+#
+#  # Calculate how many versions to delete
+#  versions_to_delete=$((${#sorted_versions[@]} - VERSIONS_TO_KEEP))
+#  echo "Function $fn_name has ${#sorted_versions[@]} versions. Keeping $VERSIONS_TO_KEEP newest versions, deleting $versions_to_delete versions."
+#
+#  # Delete all but the newest VERSIONS_TO_KEEP versions
+#  for ((i=0; i<$versions_to_delete; i++)); do
+#    version=${sorted_versions[$i]}
+#    echo "Deleting $fn_name:$version"
 #    aws lambda delete-function --function-name "$fn_name" --qualifier "$version"
-  done
+#  done
 done
 
 echo "Lambda function version cleanup complete"
