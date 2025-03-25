@@ -92,13 +92,13 @@ Resources:
                 ActionMode: CHANGE_SET_REPLACE
                 StackName: lambda-cleanup
                 TemplatePath: BuildOutput::packaged.yaml
+                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
                 ChangeSetName: lambda-cleanup-changeset
                 RoleArn: !GetAtt CloudFormationServiceRole.Arn
                 Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
-
             - Name: ExecuteChangeSet
               ActionTypeId:
                 Category: Deploy
@@ -139,6 +139,14 @@ Resources:
         - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess
+      Policies:
+        - PolicyName: PassRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt CloudFormationServiceRole.Arn
   CloudFormationServiceRole:
     Type: AWS::IAM::Role
     Properties:
