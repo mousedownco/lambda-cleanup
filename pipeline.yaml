@@ -59,57 +59,57 @@ Resources:
                 Category: Source
                 Owner: AWS
                 Provider: CodeStarSourceConnection
-                Version: "1"
+                Version: '1'
               Configuration:
                 ConnectionArn: !Ref codestarConnectionArn
                 FullRepositoryId: !Ref repository
                 BranchName: !Ref branch
               OutputArtifacts:
                 - Name: SourceCode
-        - Name: Build
-          Actions:
-            - Name: Build
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: "1"
-              Configuration:
-                ProjectName: !Ref BuildProject
-              InputArtifacts:
-                - Name: SourceCode
-              OutputArtifacts:
-                - Name: BuildOutput
-        - Name: Deploy
-          Actions:
-            - Name: CreateChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: "1"
-              Configuration:
-                ActionMode: CHANGE_SET_REPLACE
-                StackName: lambda-cleanup
-                TemplatePath: BuildOutput::packaged.yaml
-                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
-                ChangeSetName: lambda-cleanup-changeset
-                RoleArn: !GetAtt CloudFormationServiceRole.Arn
-                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-              InputArtifacts:
-                - Name: BuildOutput
-              RunOrder: 1
-            - Name: ExecuteChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: "1"
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                StackName: lambda-cleanup
-                ChangeSetName: lambda-cleanup-changeset
-              RunOrder: 2
+#        - Name: Build
+#          Actions:
+#            - Name: Build
+#              ActionTypeId:
+#                Category: Build
+#                Owner: AWS
+#                Provider: CodeBuild
+#                Version: '1'
+#              Configuration:
+#                ProjectName: !Ref BuildProject
+#              InputArtifacts:
+#                - Name: SourceCode
+#              OutputArtifacts:
+#                - Name: BuildOutput
+#        - Name: Deploy
+#          Actions:
+#            - Name: CreateChangeSet
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Provider: CloudFormation
+#                Version: '1'
+#              Configuration:
+#                ActionMode: CHANGE_SET_REPLACE
+#                StackName: lambda-cleanup
+#                TemplatePath: BuildOutput::packaged.yaml
+#                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
+#                ChangeSetName: lambda-cleanup-changeset
+#                RoleArn: !GetAtt CloudFormationServiceRole.Arn
+#                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+#              InputArtifacts:
+#                - Name: BuildOutput
+#              RunOrder: 1
+#            - Name: ExecuteChangeSet
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Provider: CloudFormation
+#                Version: '1'
+#              Configuration:
+#                ActionMode: CHANGE_SET_EXECUTE
+#                StackName: lambda-cleanup
+#                ChangeSetName: lambda-cleanup-changeset
+#              RunOrder: 2
         - Name: CleanUp
           Actions:
             - Name: CleanupLambdaVersions
@@ -117,33 +117,14 @@ Resources:
                 Category: Compute
                 Owner: AWS
                 Provider: Commands
-                Version: "1"
+                Version: '1'
               Commands:
                 - export VERSIONS_TO_KEEP=3
                 - echo "Will keep $VERSIONS_TO_KEEP latest versions for each function"
-                - |
-                  STACK_RESOURCES=$(aws cloudformation list-stack-resources \
-                    --stack-name lambda-cleanup \
-                    --query "StackResourceSummaries[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" \
-                    --output text)
-                - |
-                  for FUNCTION_NAME in $STACK_RESOURCES; do
-                    echo "Cleaning up versions for $FUNCTION_NAME"
-
-                    VERSIONS_TO_DELETE=$(aws lambda list-versions-by-function \
-                      --function-name $FUNCTION_NAME \
-                      --query "Versions[?Version!=\`$LATEST\`] | sort_by(@, &to_number(Version)) | [0:-$VERSIONS_TO_KEEP].Version" \
-                      --output text)
-
-                    if [ -n "$VERSIONS_TO_DELETE" ]; then
-                      for VERSION in $VERSIONS_TO_DELETE; do
-                        echo "Deleting version $VERSION of $FUNCTION_NAME"
-                        # aws lambda delete-version --function-name $FUNCTION_NAME --qualifier $VERSION
-                      done
-                    else
-                      echo "No versions to delete for $FUNCTION_NAME"
-                    fi
-                  done
+                - STACK_RESOURCES=$(aws cloudformation list-stack-resources --stack-name lambda-cleanup --query "StackResourceSummaries[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" --output text)
+                - echo $STACK_RESOURCES
+                - VERSIONS_TO_DELETE=$(aws lambda list-versions-by-function --function-name lambda-cleanup-HelloWorldFunction-G7FC8Dv0EG2M --query "Versions[?Version != \`\$LATEST\`].Version" --output text | sort -n | head -n -$VERSIONS_TO_KEEP)
+                - echo $VERSIONS_TO_DELETE
               RunOrder: 1
 
   # Roles
@@ -183,6 +164,15 @@ Resources:
               - Effect: Allow
                 Action: iam:PassRole
                 Resource: !GetAtt CloudFormationServiceRole.Arn
+        - PolicyName: LambdaPermissions
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:ListVersionsByFunction
+                  - lambda:DeleteVersion
+                Resource: '*'
   CloudFormationServiceRole:
     Type: AWS::IAM::Role
     Properties:
