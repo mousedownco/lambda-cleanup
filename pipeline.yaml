@@ -118,13 +118,12 @@ Resources:
                 Owner: AWS
                 Provider: Commands
                 Version: '1'
+              InputArtifacts:
+                - Name: SourceCode
               Commands:
+                - export STACK_NAMES=lambda-cleanup
                 - export VERSIONS_TO_KEEP=3
-                - echo "Will keep $VERSIONS_TO_KEEP latest versions for each function"
-                - STACK_RESOURCES=$(aws cloudformation list-stack-resources --stack-name lambda-cleanup --query "StackResourceSummaries[?ResourceType=='AWS::Lambda::Function'].PhysicalResourceId" --output text)
-                - echo $STACK_RESOURCES
-                - VERSIONS_TO_DELETE=$(aws lambda list-versions-by-function --function-name lambda-cleanup-HelloWorldFunction-G7FC8Dv0EG2M --query "Versions[?Version != \`\$LATEST\`].Version" --output text | sort -n | head -n -$VERSIONS_TO_KEEP)
-                - echo $VERSIONS_TO_DELETE
+                - ./lambda-cleanup.sh
               RunOrder: 1
 
   # Roles
