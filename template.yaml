@@ -16,7 +16,8 @@ Resources:
             return {
                 message: 'Hello World',
                 time: new Date().toISOString(),
-                buildNumber: process.env.BUILD_NUMBER
+                buildNumber: process.env.BUILD_NUMBER,
+                lambdaVersion: process.env.AWS_LAMBDA_FUNCTION_VERSION 
             }
         }
       Handler: index.lambdaHandler
