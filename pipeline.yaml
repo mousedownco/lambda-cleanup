@@ -59,7 +59,7 @@ Resources:
                 Category: Source
                 Owner: AWS
                 Provider: CodeStarSourceConnection
-                Version: '1'
+                Version: "1"
               Configuration:
                 ConnectionArn: !Ref codestarConnectionArn
                 FullRepositoryId: !Ref repository
@@ -73,7 +73,7 @@ Resources:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
-                Version: '1'
+                Version: "1"
               Configuration:
                 ProjectName: !Ref BuildProject
               InputArtifacts:
@@ -87,7 +87,7 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Provider: CloudFormation
-                Version: '1'
+                Version: "1"
               Configuration:
                 ActionMode: CHANGE_SET_REPLACE
                 StackName: lambda-cleanup
@@ -104,7 +104,7 @@ Resources:
                 Category: Deploy
                 Owner: AWS
                 Provider: CloudFormation
-                Version: '1'
+                Version: "1"
               Configuration:
                 ActionMode: CHANGE_SET_EXECUTE
                 StackName: lambda-cleanup
@@ -117,7 +117,7 @@ Resources:
                 Category: Compute
                 Owner: AWS
                 Provider: Commands
-                Version: '1'
+                Version: "1"
               Commands:
                 - export VERSIONS_TO_KEEP=3
                 - echo "Will keep $VERSIONS_TO_KEEP latest versions for each function"
@@ -129,12 +129,12 @@ Resources:
                 - |
                   for FUNCTION_NAME in $STACK_RESOURCES; do
                     echo "Cleaning up versions for $FUNCTION_NAME"
-                  
+
                     VERSIONS_TO_DELETE=$(aws lambda list-versions-by-function \
                       --function-name $FUNCTION_NAME \
                       --query "Versions[?Version!=\`$LATEST\`] | sort_by(@, &to_number(Version)) | [0:-$VERSIONS_TO_KEEP].Version" \
                       --output text)
-                  
+
                     if [ -n "$VERSIONS_TO_DELETE" ]; then
                       for VERSION in $VERSIONS_TO_DELETE; do
                         echo "Deleting version $VERSION of $FUNCTION_NAME"
@@ -158,7 +158,7 @@ Resources:
               Service: codebuild.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
