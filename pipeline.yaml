@@ -1,5 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: CodePipeline definition with Lambda version clean up
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Git Configuration
+        Parameters:
+          - codestarConnectionArn
+          - repository
+          - branch
 Parameters:
   codestarConnectionArn:
     Description: ARN of the CodeStar connection with GitHub access.
