@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: lambda-cleanup
+Parameters:
+  BuildVersion:
+    Type: String
+    Default: "local"
+    Description: Build version - modified by CodePipeline
+
 Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
@@ -8,11 +14,16 @@ Resources:
       InlineCode: |
         exports.lambdaHandler = async (event, context) => {
             return {
-                message: 'Hello World 1',
-                time: new Date().toISOString()
+                message: 'Hello World',
+                time: new Date().toISOString(),
+                buildVersion: process.env.BUILD_VERSION
             }
         }
       Handler: index.lambdaHandler
       Runtime: nodejs22.x
       Architectures:
         - arm64
+      Environment:
+        Variables:
+          BUILD_VERSION: !Ref BuildVersion
+      AutoPublishAlias: live

@@ -1,0 +1,10 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - sam build --parameter-overrides buildVersion=${CODEBUILD_BUILD_ID}
+      - sam package --output-template-file dist/packaged.yaml
+artifacts:
+  files:
+    - dist/packaged.yaml
+    - "**/*"
