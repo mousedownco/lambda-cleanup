@@ -46,14 +46,14 @@ for fn_name in "${function_arns[@]}"; do
   versions=$(aws lambda list-versions-by-function --function-name "$fn_name" --output json | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
   echo $versions
 
-#  # Convert to array and sort numerically
-#  IFS=$'\n' read -rd '' -a version_array <<< "$versions"
-#
-#  # Skip if there are no versions or fewer versions than we want to keep
-#  if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
-#    echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
-#    continue
-#  fi
+  # Convert to array and sort numerically
+  IFS=$'\n' read -rd '' -a version_array <<< "$versions"
+
+  # Skip if there are no versions or fewer versions than we want to keep
+  if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
+    echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
+    continue
+  fi
 #
 #  # Sort versions numerically (important for correct deletion)
 #  IFS=$'\n' sorted_versions=($(sort -n <<< "${version_array[*]}"))
