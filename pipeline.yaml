@@ -89,7 +89,7 @@ Resources:
                 Provider: CloudFormation
                 Version: '1'
               Configuration:
-                ActionMode: CHANGE_SET_REPLACE
+                ActionMode: CREATE_UPDATE
                 StackName: lambda-one
                 TemplatePath: BuildOutput::packaged.yaml
                 ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
@@ -106,7 +106,7 @@ Resources:
                 Provider: CloudFormation
                 Version: '1'
               Configuration:
-                ActionMode: CHANGE_SET_REPLACE
+                ActionMode: CREATE_UPDATE
                 StackName: lambda-two
                 TemplatePath: BuildOutput::packaged.yaml
                 ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
@@ -116,28 +116,6 @@ Resources:
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
-            - Name: LambdaOneExecute
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                StackName: lambda-one
-                ChangeSetName: codepipeline
-              RunOrder: 2
-            - Name: LambdaTwoExecute
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                StackName: lambda-two
-                ChangeSetName: codepipeline
-              RunOrder: 2
         - Name: CleanUp
           Actions:
             - Name: CleanupLambdaVersions
