@@ -95,7 +95,7 @@ Resources:
                 ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
                 ChangeSetName: codepipeline
                 RoleArn: !GetAtt CloudFormationServiceRole.Arn
-                Capabilities: CAPABILITY_IAM
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
@@ -112,7 +112,7 @@ Resources:
                 ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
                 ChangeSetName: codepipeline
                 RoleArn: !GetAtt CloudFormationServiceRole.Arn
-                Capabilities: CAPABILITY_IAM
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 1
