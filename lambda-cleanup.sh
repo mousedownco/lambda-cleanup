@@ -24,7 +24,6 @@ IFS=',' read -ra STACKS <<< "$STACK_NAMES"
 
 function_arns=()
 for stack in "${STACKS[@]}"; do
-  echo "Processing stack: $stack"
   stack_resources=$(aws cloudformation list-stack-resources --stack-name "$stack")
   # Extract Lambda function ARNs
   lambda_resources=$(echo "$stack_resources" | jq -r '.StackResourceSummaries[] | select(.ResourceType=="AWS::Lambda::Function") | .PhysicalResourceId')
@@ -44,17 +43,17 @@ for fn_name in "${function_arns[@]}"; do
   version_array=($versions)
   # Skip if there are no versions or fewer versions than we want to keep
   if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
-   echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
-   continue
+    echo "Function $fn_name has ${#version_array[@]} versions, which is less than or equal to $VERSIONS_TO_KEEP. Skipping."
+    continue
   fi
   # Calculate how many versions to delete
   versions_to_delete=$((${#version_array[@]} - VERSIONS_TO_KEEP))
   echo "Function $fn_name has ${#version_array[@]} versions. Keeping $VERSIONS_TO_KEEP newest versions, deleting $versions_to_delete versions."
   # Delete all but the newest VERSIONS_TO_KEEP versions
   for ((i=0; i<$versions_to_delete; i++)); do
-   version=${version_array[$i]}
-   echo "Deleting $fn_name:$version"
-   # aws lambda delete-function-version --function-name "$fn_name" --qualifier "$version"
+    version=${version_array[$i]}
+    echo "Deleting $fn_name:$version"
+    aws lambda delete-function --function-name "$fn_name" --qualifier "$version"
   done
 done
 
