@@ -175,7 +175,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - lambda:ListVersionsByFunction
-                  - lambda:DeleteVersion
+                  - lambda:DeleteFunction
                 Resource: '*'
   CloudFormationServiceRole:
     Type: AWS::IAM::Role
