@@ -11,12 +11,13 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
-      InlineCode: |
+      Description: lambda-cleanup Sample Lambda Function
+      InlineCode: !Sub |
         exports.lambdaHandler = async (event, context) => {
             return {
                 message: 'Hello World',
                 time: new Date().toISOString(),
-                buildNumber: process.env.BUILD_NUMBER,
+                buildNumber: '${buildNumber}',
                 lambdaVersion: process.env.AWS_LAMBDA_FUNCTION_VERSION 
             }
         }
@@ -24,7 +25,4 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - arm64
-      Environment:
-        Variables:
-          BUILD_NUMBER: !Ref buildNumber
       AutoPublishAlias: live
