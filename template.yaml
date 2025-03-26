@@ -11,6 +11,7 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Description: lambda-cleanup Sample Lambda Function
       InlineCode: !Sub |
         exports.lambdaHandler = async (event, context) => {
             return {
