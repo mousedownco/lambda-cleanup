@@ -66,50 +66,78 @@ Resources:
                 BranchName: !Ref branch
               OutputArtifacts:
                 - Name: SourceCode
-#        - Name: Build
-#          Actions:
-#            - Name: Build
-#              ActionTypeId:
-#                Category: Build
-#                Owner: AWS
-#                Provider: CodeBuild
-#                Version: '1'
-#              Configuration:
-#                ProjectName: !Ref BuildProject
-#              InputArtifacts:
-#                - Name: SourceCode
-#              OutputArtifacts:
-#                - Name: BuildOutput
-#        - Name: Deploy
-#          Actions:
-#            - Name: CreateChangeSet
-#              ActionTypeId:
-#                Category: Deploy
-#                Owner: AWS
-#                Provider: CloudFormation
-#                Version: '1'
-#              Configuration:
-#                ActionMode: CHANGE_SET_REPLACE
-#                StackName: lambda-cleanup
-#                TemplatePath: BuildOutput::packaged.yaml
-#                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
-#                ChangeSetName: lambda-cleanup-changeset
-#                RoleArn: !GetAtt CloudFormationServiceRole.Arn
-#                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
-#              InputArtifacts:
-#                - Name: BuildOutput
-#              RunOrder: 1
-#            - Name: ExecuteChangeSet
-#              ActionTypeId:
-#                Category: Deploy
-#                Owner: AWS
-#                Provider: CloudFormation
-#                Version: '1'
-#              Configuration:
-#                ActionMode: CHANGE_SET_EXECUTE
-#                StackName: lambda-cleanup
-#                ChangeSetName: lambda-cleanup-changeset
-#              RunOrder: 2
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref BuildProject
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput
+        - Name: Deploy
+          Actions:
+            - Name: LambdaOne
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                StackName: lambda-one
+                TemplatePath: BuildOutput::packaged.yaml
+                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
+                ChangeSetName: codepipeline
+                RoleArn: !GetAtt CloudFormationServiceRole.Arn
+                Capabilities: CAPABILITY_IAM
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+            - Name: LambdaTwo
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                StackName: lambda-two
+                TemplatePath: BuildOutput::packaged.yaml
+                ParameterOverrides: '{"buildNumber": {"Fn::GetParam": ["BuildOutput", "parameters.json", "buildNumber"]}}'
+                ChangeSetName: codepipeline
+                RoleArn: !GetAtt CloudFormationServiceRole.Arn
+                Capabilities: CAPABILITY_IAM
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+            - Name: LambdaOneExecute
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                StackName: lambda-one
+                ChangeSetName: codepipeline
+              RunOrder: 2
+            - Name: LambdaTwoExecute
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                StackName: lambda-two
+                ChangeSetName: codepipeline
+              RunOrder: 2
         - Name: CleanUp
           Actions:
             - Name: CleanupLambdaVersions
@@ -121,11 +149,10 @@ Resources:
               InputArtifacts:
                 - Name: SourceCode
               Commands:
-                - export STACK_NAMES=lambda-cleanup
-                - export VERSIONS_TO_KEEP=3
+                - export STACK_NAMES=lambda-one,lambda-two
+                - export VERSIONS_TO_KEEP=2
                 - ./lambda-cleanup.sh
               RunOrder: 1
-
   # Roles
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
