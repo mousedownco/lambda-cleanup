@@ -26,11 +26,13 @@ set -euo pipefail
 
 STACK_NAMES=""
 VERSIONS_TO_KEEP=""
+DRY_RUN=false
 
 print_usage() {
-  echo "Usage: $0 --stacks stack1,stack2,stack3 --keep N"
+  echo "Usage: $0 --stacks stack1,stack2,stack3 --keep N [--dry-run]"
   echo "  --stacks   Comma-separated list of CloudFormation stack names"
   echo "  --keep     Number of Lambda function versions to keep (positive integer)"
+  echo "  --dry-run  Identify versions to delete without actually deleting them"
   exit 1
 }
 
@@ -43,6 +45,10 @@ while [[ $# -gt 0 ]]; do
     --keep)
       VERSIONS_TO_KEEP="$2"
       shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=true
+      shift 1
       ;;
     *)
       echo "Unknown option: $1"
@@ -64,6 +70,10 @@ fi
 if ! [[ "$VERSIONS_TO_KEEP" =~ ^[0-9]+$ ]] || [[ "$VERSIONS_TO_KEEP" -lt 2 ]]; then
   echo "Error: --keep must be an integer of 2 or greater"
   print_usage
+fi
+
+if $DRY_RUN; then
+  echo "DRY RUN: No changes will be made"
 fi
 
 IFS=',' read -ra STACKS <<< "$STACK_NAMES"
@@ -94,10 +104,14 @@ for fn_name in "${function_arns[@]}"; do
   versions_to_delete=$((${#version_array[@]} - VERSIONS_TO_KEEP))
   for ((i=0; i<"$versions_to_delete"; i++)); do
     version=${version_array[$i]}
-    if aws lambda delete-function --function-name "$fn_name" --qualifier "$version" &> /dev/null; then
-      echo "DELETED $fn_name:$version"
+    if $DRY_RUN; then
+      echo "DELETE SKIPPED (DRY RUN) $fn_name:$version"
     else
-      echo "ERROR deleting $fn_name:$version"
+      if aws lambda delete-function --function-name "$fn_name" --qualifier "$version" &> /dev/null; then
+        echo "DELETED $fn_name:$version"
+      else
+        echo "ERROR deleting $fn_name:$version"
+      fi
     fi
   done
 done
