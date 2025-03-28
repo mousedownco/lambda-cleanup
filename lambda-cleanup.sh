@@ -94,8 +94,7 @@ for fn_name in "${function_arns[@]}"; do
   echo "PROCESSING $fn_name"
 
   # List all versions for this function
-  versions=$(aws lambda list-versions-by-function --function-name "$fn_name" --output json | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
-  version_array=("$versions")
+  readarray -t version_array < <(aws lambda list-versions-by-function --function-name "$fn_name" --output json | jq -r '.Versions[] | select(.Version != "$LATEST") | .Version')
   if [[ ${#version_array[@]} -le $VERSIONS_TO_KEEP ]]; then
     echo "SKIPPING $fn_name has ${#version_array[@]} versions"
     continue
